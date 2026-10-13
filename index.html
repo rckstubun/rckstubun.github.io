@@ -207,137 +207,40 @@
     </footer>
 
     <script>
-        // ==========================================
-        // ⚠️ PENTING: GANTI DENGAN KREDENSIAL SUPABASE KAMU
-        // ==========================================
         const SUPABASE_URL = 'https://xdngurgiyyedqvglocuy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhkbmd1cmdpeXllZHF2Z2xvY3V5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NTg0MTAsImV4cCI6MjEwNzQzNDQxMH0.AnRO_3bVVZKz3jUxhCvJ2kBUPs7XSx5zzFjruUb6miM';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let allMenus = []; // Variabel untuk menyimpan data agar pencarian lebih cepat
 
-        // Fungsi mengubah angka menjadi format Rupiah (Contoh: 15000 -> Rp 15.000)
-        const formatRupiah = (angka) => {
-            return new Intl.NumberFormat('id-ID', { 
-                style: 'currency', 
-                currency: 'IDR', 
-                minimumFractionDigits: 0 
-            }).format(angka);
-        };
+        async function testFetch() {
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '<p style="text-align:center;">Sedang mencoba mengambil data...</p>';
 
-        // Fungsi Utama: Mengambil data dari database Supabase
-        async function fetchMenus() {
             const { data, error } = await supabase
                 .from('menu_items')
-                .select('*')
-                .eq('active', true) // HANYA tampilkan menu yang aktif
-                .order('price', { ascending: true }); // Mengurutkan dari harga termurah
+                .select('*');
 
             if (error) {
-                document.getElementById('loading').innerText = "Gagal memuat menu. Pastikan koneksi internet stabil.";
+                container.innerHTML = `<p style="color:red; text-align:center;">Error dari Supabase: ${error.message}</p>`;
                 console.error(error);
                 return;
             }
 
-            allMenus = data;
-            document.getElementById('loading').style.display = 'none';
-            renderMenus(allMenus);
-        }
-
-        // Fungsi Menampilkan Menu ke dalam HTML
-        function renderMenus(menus) {
-            const container = document.getElementById('menu-container');
-            const navContainer = document.getElementById('nav-container');
-            
-            // Bersihkan isi sebelum merender ulang (Penting untuk fitur cari)
-            container.innerHTML = '';
-            navContainer.innerHTML = '';
-
-            // Tampilkan pesan jika menu tidak ditemukan
-            if(menus.length === 0) {
-                document.getElementById('empty-msg').style.display = 'block';
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:orange;">Koneksi berhasil, tapi tabel menu_items kosong atau RLS memblokir!</p>';
                 return;
-            } else {
-                document.getElementById('empty-msg').style.display = 'none';
             }
-            
-            // Kelompokkan menu berdasarkan kategorinya masing-masing
-            const grouped = menus.reduce((acc, menu) => {
-                if (!acc[menu.category]) acc[menu.category] = [];
-                acc[menu.category].push(menu);
-                return acc;
-            }, {});
 
-            // Susunan urutan kategori sesuai permintaanmu
-            const order = [
-                "Paket Promo", 
-                "Paket Catering", 
-                "Paket Segar", 
-                "Lainnya", 
-                "Chicken Produk", 
-                "Paket Bucket", 
-                "Ayam Utuh", 
-                "Paket Rocket", 
-                "Paket Sehat", 
-                "Paket Roma", 
-                "Paket Geprek", 
-                "Paket Hot Cheesy", 
-                "Minuman"
-            ];
-            
-            // Render Navigasi dan Daftar Menu
-            order.forEach(categoryName => {
-                // Hanya memproses kategori yang ada isi menunya
-                if(grouped[categoryName] && grouped[categoryName].length > 0) {
-                    
-                    // 1. Buat ID yang ramah URL (contoh: "Paket Promo" jadi "paket-promo")
-                    const navId = categoryName.replace(/\s+/g, '-').toLowerCase();
-                    
-                    // 2. Tambahkan tombol ke Navigasi Atas
-                    navContainer.innerHTML += `<a href="#${navId}">${categoryName}</a>`;
-
-                    // 3. Buat pembungkus (section) untuk Kategori
-                    let sectionHtml = `
-                        <div class="category-section" id="${navId}">
-                            <h2 class="category-title">${categoryName}</h2>
-                            <div class="menu-grid">
-                    `;
-                    
-                    // 4. Masukkan daftar menu ke dalam section
-                    grouped[categoryName].forEach(item => {
-                        sectionHtml += `
-                            <div class="menu-card">
-                                <div class="menu-info">
-                                    <h3>${item.name}</h3>
-                                    <p>${item.description || ''}</p>
-                                </div>
-                                <div class="price-tag">${formatRupiah(item.price)}</div>
-                            </div>
-                        `;
-                    });
-
-                    sectionHtml += `</div></div>`; // Tutup div grid dan section
-                    container.innerHTML += sectionHtml; // Tampilkan ke layar
-                }
+            // Jika berhasil, tampilkan semua data mentah ke layar untuk dicek
+            let html = '<h3 style="text-align:center; color:green;">Data Berhasil Ditarik! Total: ' + data.length + ' menu</h3><ul>';
+            data.forEach(item => {
+                html += `<li><b>[${item.category}]</b> ${item.name} - Rp ${item.price} (Aktif: ${item.active})</li>`;
             });
+            html += '</ul>';
+            container.innerHTML = html;
         }
 
-        // Fungsi Pencarian Cepat (Real-Time)
-        function filterMenus() {
-            const keyword = document.getElementById('searchInput').value.toLowerCase();
-            
-            // Saring data berdasarkan nama, deskripsi, atau search terms
-            const filtered = allMenus.filter(item => 
-                item.name.toLowerCase().includes(keyword) || 
-                (item.description && item.description.toLowerCase().includes(keyword)) ||
-                (item.search_terms && item.search_terms.toLowerCase().includes(keyword))
-            );
-            
-            renderMenus(filtered);
-        }
-
-        // Mulai ambil data saat halaman selesai dimuat
-        fetchMenus();
+        testFetch();
     </script>
 </body>
 </html>
