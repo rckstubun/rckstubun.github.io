@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rocket Chicken KS Tubun - Price List</title>
-    <!-- Tailwind CSS untuk Desain Instan yang Rapih & Modern -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS SDK v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
                 <h1 class="text-xl font-bold uppercase tracking-wider text-yellow-300">RC KS Tubun</h1>
                 <p class="text-xs opacity-90">Praktis • Lengkap • Terbaru</p>
             </div>
-            <!-- Tombol Toggle ke Mode Admin -->
+            <!-- Tombol Admin Panel -->
             <button onclick="toggleAdminMode()" id="adminBtn" class="bg-black text-yellow-300 text-xs px-3 py-1.5 rounded-full font-semibold border border-yellow-300 hover:bg-yellow-300 hover:text-black transition">
                 Admin Panel
             </button>
@@ -39,7 +39,7 @@
             <div id="empty-msg" class="hidden text-center py-10 text-gray-500 font-medium">Menu tidak ditemukan.</div>
         </div>
 
-        <!-- TAMPILAN PANEL ADMIN (Tersembunyi Awalnya) -->
+        <!-- TAMPILAN PANEL ADMIN -->
         <div id="adminView" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-4">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
                 <h2 class="text-lg font-bold text-red-600">Kelola Harga & Ketersediaan</h2>
@@ -55,7 +55,7 @@
                 <p id="loginError" class="text-red-500 text-xs mt-2 text-center"></p>
             </div>
 
-            <!-- Daftar Edit Menu (Muncul Setelah Login) -->
+            <!-- Daftar Edit Menu -->
             <div id="adminListContainer" class="hidden space-y-4">
                 <div id="adminMenuRows"></div>
             </div>
@@ -67,28 +67,23 @@
         &copy; Rocket Chicken KS Tubun. Harga dapat berubah sewaktu-waktu.
     </footer>
 
-    <!-- SCRIPT UTAMA (Sangat Ringkas & Anti-Error) -->
+    <!-- SCRIPT TUNGGAL (HANYA ADA 1 INISIALISASI SUPABASE) -->
     <script>
-        // ==========================================
-        // MASUKKAN KREDENSIAL SUPABASE BARU KAMU DI SINI
-        // ==========================================
         const SUPABASE_URL = 'https://ulpckwlazrnhxvjthlgh.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscckwlazdsYXpybmh4dnJ0aGxnaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkxODg1Mjc3LCJleHAiOjIxMDc0NjEyNzd9.IBEZUs2-n0drXoL7nlD4XbootmlVr7Ss_itYzuCsJSo';
 
+        // Inisialisasi Klien Supabase (Hanya sekali di sini)
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let allMenus = [];
-        let isAdminLoggedIn = false;
 
         const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 
-        // Inisialisasi Ambil Data Saat Halaman Dibuka
         async function init() {
             await fetchMenus();
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                isAdminLoggedIn = true;
                 document.getElementById('loginBox').classList.add('hidden');
                 document.getElementById('adminListContainer').classList.remove('hidden');
                 loadAdminMenus();
@@ -104,6 +99,7 @@
 
             if (error) {
                 document.getElementById('loading').innerText = "Gagal memuat menu: " + error.message;
+                console.error(error);
                 return;
             }
 
@@ -163,7 +159,6 @@
             renderCustomerMenus(filtered);
         }
 
-        // --- SISTEM ADMIN ---
         function toggleAdminMode() {
             const custView = document.getElementById('customerView');
             const adminView = document.getElementById('adminView');
@@ -175,7 +170,7 @@
                 adminView.classList.add('hidden');
                 custView.classList.remove('hidden');
                 document.getElementById('adminBtn').innerText = "Admin Panel";
-                fetchMenus(); // Refresh data pelanggan
+                fetchMenus();
             }
         }
 
