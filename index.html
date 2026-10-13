@@ -4,20 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Price List RC KS Tubun</title>
-    <!-- Import Supabase -->
+    <!-- Import Supabase JS v2 (Versi Stabil Terbaru) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            /* Warna Identitas Rocket Chicken */
             --rc-red: #d32f2f;
             --rc-yellow: #fbc02d;
             --rc-black: #212121;
             --rc-white: #ffffff;
             --rc-bg: #f5f6fa;
         }
-        
         * { box-sizing: border-box; }
-        
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; 
@@ -25,8 +22,6 @@
             color: var(--rc-black); 
             padding-bottom: 50px;
         }
-        
-        /* Bagian Header */
         header { 
             background-color: var(--rc-red); 
             color: var(--rc-white); 
@@ -49,8 +44,6 @@
             font-size: 0.9rem; 
             opacity: 0.9; 
         }
-
-        /* Kolom Pencarian */
         .search-bar { 
             max-width: 400px; 
             margin: 0 auto; 
@@ -65,14 +58,11 @@
             font-size: 0.95rem;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
-
         .container { 
             max-width: 800px; 
             margin: 0 auto; 
             padding: 0 20px; 
         }
-        
-        /* Navigasi Kategori (Bisa digeser ke samping) */
         .nav-categories { 
             display: flex; 
             overflow-x: auto; 
@@ -83,9 +73,7 @@
             white-space: nowrap; 
             scroll-behavior: smooth;
         }
-        .nav-categories::-webkit-scrollbar { 
-            display: none; /* Menyembunyikan scrollbar bawaan agar rapi */ 
-        }
+        .nav-categories::-webkit-scrollbar { display: none; }
         .nav-categories a { 
             padding: 8px 18px; 
             background: var(--rc-bg); 
@@ -102,10 +90,7 @@
             color: var(--rc-white); 
             border-color: var(--rc-red); 
         }
-
-        /* Jarak Antar Kategori */
         .category-section { margin-top: 35px; }
-        
         .category-title { 
             border-bottom: 3px solid var(--rc-yellow); 
             padding-bottom: 5px; 
@@ -114,19 +99,14 @@
             font-size: 1.3rem; 
             display: inline-block;
         }
-        
-        /* Grid Menu */
         .menu-grid { 
             display: grid; 
             grid-template-columns: 1fr; 
             gap: 15px; 
         }
-        /* Jika layar tablet/laptop, bagi jadi 2 kolom */
         @media (min-width: 600px) { 
             .menu-grid { grid-template-columns: 1fr 1fr; } 
         }
-        
-        /* Desain Kartu Menu */
         .menu-card { 
             background: var(--rc-white); 
             padding: 15px; 
@@ -153,8 +133,6 @@
             color: #666; 
             line-height: 1.4;
         }
-        
-        /* Label Harga */
         .price-tag { 
             background: var(--rc-black); 
             color: var(--rc-yellow); 
@@ -164,15 +142,12 @@
             font-size: 0.95rem; 
             white-space: nowrap; 
         }
-        
-        /* Pesan Loading dan Kosong */
         #loading, #empty-msg { 
             text-align: center; 
             padding: 50px 20px; 
             font-weight: bold; 
             color: var(--rc-red); 
         }
-        
         footer { 
             text-align: center; 
             padding: 20px; 
@@ -192,9 +167,7 @@
         </div>
     </header>
 
-    <div class="nav-categories" id="nav-container">
-        <!-- Tombol Kategori akan dirender otomatis oleh JavaScript -->
-    </div>
+    <div class="nav-categories" id="nav-container"></div>
 
     <div class="container" id="menu-container">
         <div id="loading">Memuat daftar harga menu...</div>
@@ -207,40 +180,106 @@
     </footer>
 
     <script>
+        // Kredensial Supabase Anda
         const SUPABASE_URL = 'https://xdngurgiyyedqvglocuy.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhkbmd1cmdpeXllZHF2Z2xvY3V5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NTg0MTAsImV4cCI6MjEwNzQzNDQxMH0.AnRO_3bVVZKz3jUxhCvJ2kBUPs7XSx5zzFjruUb6miM';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Standar pemanggilan createClient yang aman di v2
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let allMenus = [];
 
-        async function testFetch() {
-            const container = document.getElementById('menu-container');
-            container.innerHTML = '<p style="text-align:center;">Sedang mencoba mengambil data...</p>';
+        const formatRupiah = (angka) => {
+            return new Intl.NumberFormat('id-ID', { 
+                style: 'currency', currency: 'IDR', minimumFractionDigits: 0 
+            }).format(angka);
+        };
 
+        async function fetchMenus() {
             const { data, error } = await supabase
                 .from('menu_items')
-                .select('*');
+                .select('*')
+                .eq('active', true)
+                .order('price', { ascending: true });
 
             if (error) {
-                container.innerHTML = `<p style="color:red; text-align:center;">Error dari Supabase: ${error.message}</p>`;
-                console.error(error);
+                document.getElementById('loading').innerText = "Gagal memuat menu: " + error.message;
+                console.error("Supabase Error:", error);
                 return;
             }
 
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:orange;">Koneksi berhasil, tapi tabel menu_items kosong atau RLS memblokir!</p>';
-                return;
-            }
-
-            // Jika berhasil, tampilkan semua data mentah ke layar untuk dicek
-            let html = '<h3 style="text-align:center; color:green;">Data Berhasil Ditarik! Total: ' + data.length + ' menu</h3><ul>';
-            data.forEach(item => {
-                html += `<li><b>[${item.category}]</b> ${item.name} - Rp ${item.price} (Aktif: ${item.active})</li>`;
-            });
-            html += '</ul>';
-            container.innerHTML = html;
+            allMenus = data;
+            document.getElementById('loading').style.display = 'none';
+            renderMenus(allMenus);
         }
 
-        testFetch();
+        function renderMenus(menus) {
+            const container = document.getElementById('menu-container');
+            const navContainer = document.getElementById('nav-container');
+            
+            container.innerHTML = '';
+            navContainer.innerHTML = '';
+
+            if(!menus || menus.length === 0) {
+                document.getElementById('empty-msg').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('empty-msg').style.display = 'none';
+            }
+            
+            const grouped = menus.reduce((acc, menu) => {
+                if (!acc[menu.category]) acc[menu.category] = [];
+                acc[menu.category].push(menu);
+                return acc;
+            }, {});
+
+            const order = [
+                "Paket Promo", "Paket Catering", "Paket Segar", "Lainnya", 
+                "Chicken Produk", "Paket Bucket", "Ayam Utuh", "Paket Rocket", 
+                "Paket Sehat", "Paket Roma", "Paket Geprek", "Paket Hot Cheesy", "Minuman"
+            ];
+            
+            order.forEach(categoryName => {
+                if(grouped[categoryName] && grouped[categoryName].length > 0) {
+                    const navId = categoryName.replace(/\s+/g, '-').toLowerCase();
+                    navContainer.innerHTML += `<a href="#${navId}">${categoryName}</a>`;
+
+                    let sectionHtml = `
+                        <div class="category-section" id="${navId}">
+                            <h2 class="category-title">${categoryName}</h2>
+                            <div class="menu-grid">
+                    `;
+                    
+                    grouped[categoryName].forEach(item => {
+                        sectionHtml += `
+                            <div class="menu-card">
+                                <div class="menu-info">
+                                    <h3>${item.name}</h3>
+                                    <p>${item.description || ''}</p>
+                                </div>
+                                <div class="price-tag">${formatRupiah(item.price)}</div>
+                            </div>
+                        `;
+                    });
+
+                    sectionHtml += `</div></div>`;
+                    container.innerHTML += sectionHtml;
+                }
+            });
+        }
+
+        function filterMenus() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allMenus.filter(item => 
+                item.name.toLowerCase().includes(keyword) || 
+                (item.description && item.description.toLowerCase().includes(keyword)) ||
+                (item.search_terms && item.search_terms.toLowerCase().includes(keyword))
+            );
+            renderMenus(filtered);
+        }
+
+        fetchMenus();
     </script>
 </body>
 </html>
