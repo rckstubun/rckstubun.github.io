@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Price List RC KS Tubun</title>
-    <!-- Import Supabase JS v2 (Versi Stabil Terbaru) -->
+    <!-- Supabase JS SDK v2 CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -15,146 +15,28 @@
             --rc-bg: #f5f6fa;
         }
         * { box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            background-color: var(--rc-bg); 
-            color: var(--rc-black); 
-            padding-bottom: 50px;
-        }
-        header { 
-            background-color: var(--rc-red); 
-            color: var(--rc-white); 
-            padding: 25px 20px; 
-            text-align: center; 
-            position: sticky; 
-            top: 0; 
-            z-index: 100; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-        }
-        header h1 { 
-            margin: 0; 
-            font-size: 1.6rem; 
-            text-transform: uppercase; 
-            color: var(--rc-yellow); 
-            letter-spacing: 1px; 
-        }
-        header p { 
-            margin: 5px 0 15px; 
-            font-size: 0.9rem; 
-            opacity: 0.9; 
-        }
-        .search-bar { 
-            max-width: 400px; 
-            margin: 0 auto; 
-            display: flex; 
-        }
-        .search-bar input { 
-            flex: 1; 
-            padding: 12px 20px; 
-            border-radius: 25px; 
-            border: none; 
-            outline: none; 
-            font-size: 0.95rem;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .container { 
-            max-width: 800px; 
-            margin: 0 auto; 
-            padding: 0 20px; 
-        }
-        .nav-categories { 
-            display: flex; 
-            overflow-x: auto; 
-            gap: 10px; 
-            padding: 15px 20px; 
-            background: var(--rc-white); 
-            border-bottom: 1px solid #ddd; 
-            white-space: nowrap; 
-            scroll-behavior: smooth;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--rc-bg); color: var(--rc-black); padding-bottom: 50px; }
+        header { background-color: var(--rc-red); color: var(--rc-white); padding: 25px 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { margin: 0; font-size: 1.6rem; text-transform: uppercase; color: var(--rc-yellow); letter-spacing: 1px; }
+        header p { margin: 5px 0 15px; font-size: 0.9rem; opacity: 0.9; }
+        .search-bar { max-width: 400px; margin: 0 auto; display: flex; }
+        .search-bar input { flex: 1; padding: 12px 20px; border-radius: 25px; border: none; outline: none; font-size: 0.95rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .nav-categories { display: flex; overflow-x: auto; gap: 10px; padding: 15px 20px; background: var(--rc-white); border-bottom: 1px solid #ddd; white-space: nowrap; scroll-behavior: smooth; }
         .nav-categories::-webkit-scrollbar { display: none; }
-        .nav-categories a { 
-            padding: 8px 18px; 
-            background: var(--rc-bg); 
-            color: var(--rc-black); 
-            text-decoration: none; 
-            border-radius: 20px; 
-            font-size: 0.85rem; 
-            font-weight: 600; 
-            border: 1px solid #ddd; 
-            transition: all 0.2s;
-        }
-        .nav-categories a:hover, .nav-categories a:active { 
-            background: var(--rc-red); 
-            color: var(--rc-white); 
-            border-color: var(--rc-red); 
-        }
+        .nav-categories a { padding: 8px 18px; background: var(--rc-bg); color: var(--rc-black); text-decoration: none; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #ddd; transition: all 0.2s; }
+        .nav-categories a:hover, .nav-categories a:active { background: var(--rc-red); color: var(--rc-white); border-color: var(--rc-red); }
         .category-section { margin-top: 35px; }
-        .category-title { 
-            border-bottom: 3px solid var(--rc-yellow); 
-            padding-bottom: 5px; 
-            margin-bottom: 15px; 
-            color: var(--rc-red); 
-            font-size: 1.3rem; 
-            display: inline-block;
-        }
-        .menu-grid { 
-            display: grid; 
-            grid-template-columns: 1fr; 
-            gap: 15px; 
-        }
-        @media (min-width: 600px) { 
-            .menu-grid { grid-template-columns: 1fr 1fr; } 
-        }
-        .menu-card { 
-            background: var(--rc-white); 
-            padding: 15px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border: 1px solid #eee;
-            border-left: 6px solid var(--rc-yellow); 
-        }
-        .menu-info { 
-            flex: 1; 
-            padding-right: 15px;
-        }
-        .menu-info h3 { 
-            margin: 0 0 4px; 
-            font-size: 1.05rem; 
-            color: var(--rc-black); 
-        }
-        .menu-info p { 
-            margin: 0; 
-            font-size: 0.8rem; 
-            color: #666; 
-            line-height: 1.4;
-        }
-        .price-tag { 
-            background: var(--rc-black); 
-            color: var(--rc-yellow); 
-            padding: 6px 12px; 
-            border-radius: 20px; 
-            font-weight: bold; 
-            font-size: 0.95rem; 
-            white-space: nowrap; 
-        }
-        #loading, #empty-msg { 
-            text-align: center; 
-            padding: 50px 20px; 
-            font-weight: bold; 
-            color: var(--rc-red); 
-        }
-        footer { 
-            text-align: center; 
-            padding: 20px; 
-            margin-top: 40px; 
-            font-size: 0.8rem; 
-            color: #888; 
-        }
+        .category-title { border-bottom: 3px solid var(--rc-yellow); padding-bottom: 5px; margin-bottom: 15px; color: var(--rc-red); font-size: 1.3rem; display: inline-block; }
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media (min-width: 600px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
+        .menu-card { background: var(--rc-white); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; border-left: 6px solid var(--rc-yellow); }
+        .menu-info { flex: 1; padding-right: 15px; }
+        .menu-info h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--rc-black); }
+        .menu-info p { margin: 0; font-size: 0.8rem; color: #666; line-height: 1.4; }
+        .price-tag { background: var(--rc-black); color: var(--rc-yellow); padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
+        #loading, #empty-msg { text-align: center; padding: 50px 20px; font-weight: bold; color: var(--rc-red); }
+        footer { text-align: center; padding: 20px; margin-top: 40px; font-size: 0.8rem; color: #888; }
     </style>
 </head>
 <body>
@@ -180,20 +62,18 @@
     </footer>
 
     <script>
-        // Kredensial Supabase Anda
-        const SUPABASE_URL = 'https://xdngurgiyyedqvglocuy.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhkbmd1cmdpeXllZHF2Z2xvY3V5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4NTg0MTAsImV4cCI6MjEwNzQzNDQxMH0.AnRO_3bVVZKz3jUxhCvJ2kBUPs7XSx5zzFjruUb6miM';
-        
-        // Standar pemanggilan createClient yang aman di v2
+        // Masukkan kredensial project baru Supabase kamu di sini:
+        const SUPABASE_URL = 'URL_SUPABASE_BARU_KAMU';
+        const SUPABASE_ANON_KEY = 'ANON_KEY_BARU_KAMU';
+
+        // Inisialisasi Supabase SDK v2 resmi
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let allMenus = [];
 
         const formatRupiah = (angka) => {
-            return new Intl.NumberFormat('id-ID', { 
-                style: 'currency', currency: 'IDR', minimumFractionDigits: 0 
-            }).format(angka);
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         };
 
         async function fetchMenus() {
@@ -205,7 +85,7 @@
 
             if (error) {
                 document.getElementById('loading').innerText = "Gagal memuat menu: " + error.message;
-                console.error("Supabase Error:", error);
+                console.error(error);
                 return;
             }
 
