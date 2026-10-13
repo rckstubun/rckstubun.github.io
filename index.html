@@ -3,78 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Price List RC KS Tubun</title>
-    <!-- Supabase JS SDK v2 CDN -->
+    <title>Rocket Chicken KS Tubun - Price List</title>
+    <!-- Tailwind CSS untuk Desain Instan yang Rapih & Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS SDK v2 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root {
-            --rc-red: #d32f2f;
-            --rc-yellow: #fbc02d;
-            --rc-black: #212121;
-            --rc-white: #ffffff;
-            --rc-bg: #f5f6fa;
-        }
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: var(--rc-bg); color: var(--rc-black); padding-bottom: 50px; }
-        header { background-color: var(--rc-red); color: var(--rc-white); padding: 25px 20px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        header h1 { margin: 0; font-size: 1.6rem; text-transform: uppercase; color: var(--rc-yellow); letter-spacing: 1px; }
-        header p { margin: 5px 0 15px; font-size: 0.9rem; opacity: 0.9; }
-        .search-bar { max-width: 400px; margin: 0 auto; display: flex; }
-        .search-bar input { flex: 1; padding: 12px 20px; border-radius: 25px; border: none; outline: none; font-size: 0.95rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
-        .nav-categories { display: flex; overflow-x: auto; gap: 10px; padding: 15px 20px; background: var(--rc-white); border-bottom: 1px solid #ddd; white-space: nowrap; scroll-behavior: smooth; }
-        .nav-categories::-webkit-scrollbar { display: none; }
-        .nav-categories a { padding: 8px 18px; background: var(--rc-bg); color: var(--rc-black); text-decoration: none; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #ddd; transition: all 0.2s; }
-        .nav-categories a:hover, .nav-categories a:active { background: var(--rc-red); color: var(--rc-white); border-color: var(--rc-red); }
-        .category-section { margin-top: 35px; }
-        .category-title { border-bottom: 3px solid var(--rc-yellow); padding-bottom: 5px; margin-bottom: 15px; color: var(--rc-red); font-size: 1.3rem; display: inline-block; }
-        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media (min-width: 600px) { .menu-grid { grid-template-columns: 1fr 1fr; } }
-        .menu-card { background: var(--rc-white); padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; border-left: 6px solid var(--rc-yellow); }
-        .menu-info { flex: 1; padding-right: 15px; }
-        .menu-info h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--rc-black); }
-        .menu-info p { margin: 0; font-size: 0.8rem; color: #666; line-height: 1.4; }
-        .price-tag { background: var(--rc-black); color: var(--rc-yellow); padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; white-space: nowrap; }
-        #loading, #empty-msg { text-align: center; padding: 50px 20px; font-weight: bold; color: var(--rc-red); }
-        footer { text-align: center; padding: 20px; margin-top: 40px; font-size: 0.8rem; color: #888; }
-    </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 pb-20">
 
-    <header>
-        <h1>Price List RC KS Tubun</h1>
-        <p>Praktis • Lengkap • Terbaru</p>
-        <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Cari menu, paket, atau minuman..." onkeyup="filterMenus()">
+    <!-- HEADER & SEARCH -->
+    <header class="bg-red-600 text-white p-6 sticky top-0 z-50 shadow-md">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold uppercase tracking-wider text-yellow-300">RC KS Tubun</h1>
+                <p class="text-xs opacity-90">Praktis • Lengkap • Terbaru</p>
+            </div>
+            <!-- Tombol Toggle ke Mode Admin -->
+            <button onclick="toggleAdminMode()" id="adminBtn" class="bg-black text-yellow-300 text-xs px-3 py-1.5 rounded-full font-semibold border border-yellow-300 hover:bg-yellow-300 hover:text-black transition">
+                Admin Panel
+            </button>
+        </div>
+        <div class="max-w-3xl mx-auto mt-4">
+            <input type="text" id="searchInput" placeholder="Cari menu, paket, atau minuman..." onkeyup="filterMenus()" class="w-full px-4 py-2 rounded-full text-gray-800 text-sm outline-none shadow-inner">
         </div>
     </header>
 
-    <div class="nav-categories" id="nav-container"></div>
+    <!-- KONTEN UTAMA -->
+    <main class="max-w-3xl mx-auto px-4 mt-6">
+        
+        <!-- TAMPILAN KATALOG PELANGGAN -->
+        <div id="customerView">
+            <div id="nav-container" class="flex overflow-x-auto gap-2 pb-2 mb-4 scrollbar-none"></div>
+            <div id="loading" class="text-center py-10 font-semibold text-red-600">Memuat daftar harga menu...</div>
+            <div id="menu-container"></div>
+            <div id="empty-msg" class="hidden text-center py-10 text-gray-500 font-medium">Menu tidak ditemukan.</div>
+        </div>
 
-    <div class="container" id="menu-container">
-        <div id="loading">Memuat daftar harga menu...</div>
-    </div>
-    
-    <div id="empty-msg" style="display:none;">Menu tidak ditemukan. Coba gunakan kata kunci lain.</div>
+        <!-- TAMPILAN PANEL ADMIN (Tersembunyi Awalnya) -->
+        <div id="adminView" class="hidden bg-white p-6 rounded-xl shadow-lg border border-gray-200 mt-4">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <h2 class="text-lg font-bold text-red-600">Kelola Harga & Ketersediaan</h2>
+                <button onclick="logoutAdmin()" class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded font-bold">Keluar Admin</button>
+            </div>
 
-    <footer>
-        &copy; Rocket Chicken KS Tubun.<br>Harga dan ketersediaan dapat berubah sewaktu-waktu.
+            <!-- Form Login Admin -->
+            <div id="loginBox" class="max-w-sm mx-auto py-6">
+                <p class="text-sm font-semibold mb-3 text-center">Silakan Login Admin Supabase</p>
+                <input type="email" id="adminEmail" placeholder="Email Admin" class="w-full p-2 mb-3 border rounded text-sm">
+                <input type="password" id="adminPassword" placeholder="Password" class="w-full p-2 mb-4 border rounded text-sm">
+                <button onclick="loginAdmin()" class="w-full bg-red-600 text-white py-2 rounded font-bold text-sm hover:bg-red-700">Masuk</button>
+                <p id="loginError" class="text-red-500 text-xs mt-2 text-center"></p>
+            </div>
+
+            <!-- Daftar Edit Menu (Muncul Setelah Login) -->
+            <div id="adminListContainer" class="hidden space-y-4">
+                <div id="adminMenuRows"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="text-center text-xs text-gray-500 mt-10">
+        &copy; Rocket Chicken KS Tubun. Harga dapat berubah sewaktu-waktu.
     </footer>
 
+    <!-- SCRIPT UTAMA (Sangat Ringkas & Anti-Error) -->
     <script>
-        // Masukkan kredensial project baru Supabase kamu di sini:
+        // ==========================================
+        // MASUKKAN KREDENSIAL SUPABASE BARU KAMU DI SINI
+        // ==========================================
         const SUPABASE_URL = 'https://ulpckwlazrnhxvjthlgh.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscGNrd2xhenJuaHh2anRobGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4ODUyNzcsImV4cCI6MjEwNzQ2MTI3N30.IBEZUs2-n0drXoL7nlD4XbootmlVr7Ss_itYzuCsJSo';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscckwlazdsYXpybmh4dnJ0aGxnaCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzkxODg1Mjc3LCJleHAiOjIxMDc0NjEyNzd9.IBEZUs2-n0drXoL7nlD4XbootmlVr7Ss_itYzuCsJSo';
 
-        // Inisialisasi Supabase SDK v2 resmi
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let allMenus = [];
+        let isAdminLoggedIn = false;
 
-        const formatRupiah = (angka) => {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-        };
+        const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+
+        // Inisialisasi Ambil Data Saat Halaman Dibuka
+        async function init() {
+            await fetchMenus();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                isAdminLoggedIn = true;
+                document.getElementById('loginBox').classList.add('hidden');
+                document.getElementById('adminListContainer').classList.remove('hidden');
+                loadAdminMenus();
+            }
+        }
 
         async function fetchMenus() {
             const { data, error } = await supabase
@@ -85,81 +104,146 @@
 
             if (error) {
                 document.getElementById('loading').innerText = "Gagal memuat menu: " + error.message;
-                console.error(error);
                 return;
             }
 
-            allMenus = data;
+            allMenus = data || [];
             document.getElementById('loading').style.display = 'none';
-            renderMenus(allMenus);
+            renderCustomerMenus(allMenus);
         }
 
-        function renderMenus(menus) {
+        function renderCustomerMenus(menus) {
             const container = document.getElementById('menu-container');
             const navContainer = document.getElementById('nav-container');
-            
             container.innerHTML = '';
             navContainer.innerHTML = '';
 
-            if(!menus || menus.length === 0) {
-                document.getElementById('empty-msg').style.display = 'block';
+            if (menus.length === 0) {
+                document.getElementById('empty-msg').classList.remove('hidden');
                 return;
             } else {
-                document.getElementById('empty-msg').style.display = 'none';
+                document.getElementById('empty-msg').classList.add('hidden');
             }
-            
-            const grouped = menus.reduce((acc, menu) => {
-                if (!acc[menu.category]) acc[menu.category] = [];
-                acc[menu.category].push(menu);
+
+            const grouped = menus.reduce((acc, m) => {
+                if (!acc[m.category]) acc[m.category] = [];
+                acc[m.category].push(m);
                 return acc;
             }, {});
 
-            const order = [
-                "Paket Promo", "Paket Catering", "Paket Segar", "Lainnya", 
-                "Chicken Produk", "Paket Bucket", "Ayam Utuh", "Paket Rocket", 
-                "Paket Sehat", "Paket Roma", "Paket Geprek", "Paket Hot Cheesy", "Minuman"
-            ];
-            
-            order.forEach(categoryName => {
-                if(grouped[categoryName] && grouped[categoryName].length > 0) {
-                    const navId = categoryName.replace(/\s+/g, '-').toLowerCase();
-                    navContainer.innerHTML += `<a href="#${navId}">${categoryName}</a>`;
+            const order = ["Paket Promo", "Paket Catering", "Paket Segar", "Lainnya", "Chicken Produk", "Paket Bucket", "Ayam Utuh", "Paket Rocket", "Paket Sehat", "Paket Roma", "Paket Geprek", "Paket Hot Cheesy", "Minuman"];
 
-                    let sectionHtml = `
-                        <div class="category-section" id="${navId}">
-                            <h2 class="category-title">${categoryName}</h2>
-                            <div class="menu-grid">
-                    `;
+            order.forEach(cat => {
+                if (grouped[cat] && grouped[cat].length > 0) {
+                    const id = cat.toLowerCase().replace(/\s+/g, '-');
+                    navContainer.innerHTML += `<a href="#${id}" class="px-3 py-1 bg-gray-200 text-xs rounded-full whitespace-nowrap font-semibold hover:bg-red-600 hover:text-white transition">${cat}</a>`;
+
+                    let html = `<div id="${id}" class="mb-8"><h3 class="text-base font-bold text-red-600 border-b-2 border-yellow-400 pb-1 mb-3">${cat}</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
                     
-                    grouped[categoryName].forEach(item => {
-                        sectionHtml += `
-                            <div class="menu-card">
-                                <div class="menu-info">
-                                    <h3>${item.name}</h3>
-                                    <p>${item.description || ''}</p>
+                    grouped[cat].forEach(item => {
+                        html += `
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center border-l-4 border-l-yellow-400">
+                                <div class="pr-3">
+                                    <h4 class="font-bold text-sm">${item.name}</h4>
+                                    <p class="text-xs text-gray-500">${item.description || ''}</p>
                                 </div>
-                                <div class="price-tag">${formatRupiah(item.price)}</div>
+                                <span class="bg-black text-yellow-300 px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap">${formatRupiah(item.price)}</span>
                             </div>
                         `;
                     });
-
-                    sectionHtml += `</div></div>`;
-                    container.innerHTML += sectionHtml;
+                    html += `</div></div>`;
+                    container.innerHTML += html;
                 }
             });
         }
 
         function filterMenus() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allMenus.filter(item => 
-                item.name.toLowerCase().includes(keyword) || 
-                (item.description && item.description.toLowerCase().includes(keyword)) ||
-                (item.search_terms && item.search_terms.toLowerCase().includes(keyword))
-            );
-            renderMenus(filtered);
+            const filtered = allMenus.filter(i => i.name.toLowerCase().includes(keyword) || (i.description && i.description.toLowerCase().includes(keyword)));
+            renderCustomerMenus(filtered);
         }
 
-        fetchMenus();
+        // --- SISTEM ADMIN ---
+        function toggleAdminMode() {
+            const custView = document.getElementById('customerView');
+            const adminView = document.getElementById('adminView');
+            if (adminView.classList.contains('hidden')) {
+                custView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                document.getElementById('adminBtn').innerText = "Lihat Katalog";
+            } else {
+                adminView.classList.add('hidden');
+                custView.classList.remove('hidden');
+                document.getElementById('adminBtn').innerText = "Admin Panel";
+                fetchMenus(); // Refresh data pelanggan
+            }
+        }
+
+        async function loginAdmin() {
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const err = document.getElementById('loginError');
+            
+            err.innerText = "Memeriksa...";
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            
+            if (error) {
+                err.innerText = "Login gagal. Cek email/password.";
+            } else {
+                err.innerText = "";
+                document.getElementById('loginBox').classList.add('hidden');
+                document.getElementById('adminListContainer').classList.remove('hidden');
+                loadAdminMenus();
+            }
+        }
+
+        async function logoutAdmin() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
+
+        async function loadAdminMenus() {
+            const { data, error } = await supabase.from('menu_items').select('*').order('category');
+            if (error) return;
+
+            const container = document.getElementById('adminMenuRows');
+            container.innerHTML = '';
+
+            data.forEach(item => {
+                container.innerHTML += `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 border-b gap-2 text-sm">
+                        <div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">${item.category}</span>
+                            <p class="font-bold mt-1">${item.name}</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <label class="text-xs flex items-center gap-1"><input type="checkbox" id="act-${item.id}" ${item.active ? 'checked' : ''}> Aktif</label>
+                            <input type="number" id="prc-${item.id}" value="${item.price}" class="w-24 p-1 border rounded text-xs">
+                            <button onclick="saveItem('${item.id}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-700">Simpan</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function saveItem(id) {
+            const price = parseInt(document.getElementById(`prc-${id}`).value);
+            const active = document.getElementById(`act-${id}`).checked;
+            const btn = event.target;
+
+            btn.innerText = "Menyimpan...";
+            const { error } = await supabase.from('menu_items').update({ price, active }).eq('id', id);
+
+            if (error) {
+                alert("Gagal menyimpan");
+                btn.innerText = "Simpan";
+            } else {
+                btn.innerText = "Berhasil ✓";
+                setTimeout(() => btn.innerText = "Simpan", 1500);
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
