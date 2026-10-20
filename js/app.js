@@ -117,6 +117,7 @@ function renderCategories() {
 }
 
 function renderMenu() {
+    document.getElementById('menuTitle').textContent = activeCategory || 'Menu Rocket Chicken';
     const query = document.getElementById('searchInput').value.trim().toLocaleLowerCase('id-ID');
     const filtered = menuItems.filter(item => {
         const matchesCategory = item.category === activeCategory;
