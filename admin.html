@@ -1,70 +1,108 @@
 <!doctype html>
-<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#c8102e"><title>Admin — Price List RC KS Tubun</title>
-<style>
-:root{--red:#c8102e;--yellow:#ffd42a;--ink:#191919;--muted:#777;--line:#e8e8e8;--bg:#f6f6f7}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,sans-serif}.wrap{max-width:1120px;margin:auto;padding:18px}.head{background:linear-gradient(120deg,#9f0b22,#c8102e);color:#fff;padding:20px;border-radius:18px;display:flex;justify-content:space-between;gap:12px;align-items:center}.head h1{margin:0;font-size:22px}.head p{margin:4px 0 0;color:#ffe5e8;font-size:12px}a{color:inherit;text-decoration:none}.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:800;cursor:pointer;background:var(--yellow);color:#261d00}.btn.secondary{background:#fff;border:1px solid var(--line);color:#333}.btn.danger{background:#fff0f1;color:#b00020;border:1px solid #ffd4d9}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px}.panel h2{margin:0 0 12px;font-size:17px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:12px;font-weight:800;color:#555}.field input,.field select,.field textarea{border:1px solid #ddd;border-radius:10px;padding:11px;background:#fff;min-width:0;font:inherit}.field textarea{min-height:65px;resize:vertical}.wide{grid-column:1/-1}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.muted{color:var(--muted);font-size:12px}.login{max-width:430px;margin:28px auto}.notice{padding:12px;border-radius:10px;background:#fff8d8;color:#5c4700;font-size:12px;margin-top:12px}.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{padding:12px 14px;background:#fafafa;border:1px solid var(--line);border-radius:12px;min-width:120px}.stat strong{font-size:20px;display:block}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:680px}th,td{text-align:left;border-bottom:1px solid #eee;padding:11px 9px;vertical-align:top}th{font-size:11px;color:#777;text-transform:uppercase;letter-spacing:.04em}td{font-size:13px}.price{font-weight:900;color:var(--red);white-space:nowrap}.badge{display:inline-block;border-radius:999px;background:#f1f1f1;padding:4px 7px;font-size:10px;font-weight:800}.badge.off{background:#ffe7e9;color:#a50018}.hidden{display:none!important}.check{display:flex;align-items:center;gap:8px}.check input{width:18px;height:18px}@media(max-width:600px){.wrap{padding:12px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.head{align-items:flex-start;flex-direction:column}.panel{padding:14px}.btn{padding:10px 11px}}
-</style></head><body><div class="wrap">
-<div class="head"><div><h1>Panel Admin RC KS Tubun</h1><p>Kelola daftar menu, kategori, harga, dan status tampil.</p></div><a class="btn" href="index.html">← Halaman Menu</a></div>
-<section id="loginPanel" class="panel login"><h2>Login Admin</h2><p class="muted">Masuk menggunakan akun admin yang terdaftar di Supabase Auth.</p><form id="loginForm" class="grid"><div class="field wide"><label>Email</label><input id="email" type="email" required autocomplete="username" placeholder="admin@contoh.com"></div><div class="field wide"><label>Password</label><input id="password" type="password" required autocomplete="current-password"></div><div class="wide"><button class="btn" type="submit">Login</button></div></form><div class="notice">Jika login belum bisa, pastikan akun admin sudah dibuat di Supabase → Authentication → Users dan SQL schema sudah dijalankan.</div><p id="loginMsg" class="muted"></p></section>
-<div id="app" class="hidden">
-<section class="panel"><div class="row" style="justify-content:space-between"><div><h2>Ringkasan menu</h2><p class="muted">Perubahan tersimpan langsung ke database.</p></div><button id="logout" class="btn secondary">Keluar</button></div><div class="stats"><div class="stat"><strong id="totalCount">0</strong><span class="muted">Total menu</span></div><div class="stat"><strong id="activeCount">0</strong><span class="muted">Menu aktif</span></div><div class="stat"><strong id="catCount">0</strong><span class="muted">Kategori</span></div></div></section>
-<section class="panel"><h2 id="formTitle">Tambah menu baru</h2><form id="menuForm" class="grid">
-<input id="menuId" type="hidden"><div class="field"><label>Nama menu *</label><input id="name" required maxlength="120"></div><div class="field"><label>Harga (rupiah) *</label><input id="price" type="number" min="0" step="500" required></div>
-<div class="field"><label>Kategori tampilan *</label><select id="category" required></select></div><div class="field"><label>Kategori sumber (opsional)</label><input id="sourceCategory" placeholder="Kategori awal dari CSV"></div>
-<div class="field wide"><label>Deskripsi / isi paket</label><textarea id="description"></textarea></div><div class="field wide"><label>Kata kunci pencarian</label><input id="searchTerms" placeholder="contoh: ayam nasi es teh"></div>
-<div class="field wide"><label class="check"><input id="active" type="checkbox" checked> Tampilkan menu di halaman pelanggan</label></div>
-<div class="wide row"><button class="btn" type="submit">Simpan menu</button><button class="btn secondary" type="button" id="resetForm">Kosongkan</button><span id="formMsg" class="muted"></span></div>
-</form></section>
-<section class="panel"><div class="row" style="justify-content:space-between"><h2>Daftar menu</h2><div class="row"><input id="filter" placeholder="Cari nama/kategori…" style="padding:10px;border:1px solid #ddd;border-radius:10px;max-width:200px"><button id="refresh" class="btn secondary">Muat ulang</button></div></div><div class="tablewrap"><table><thead><tr><th>Menu</th><th>Kategori</th><th>Harga</th><th>Status</th><th>Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="5">Memuat…</td></tr></tbody></table></div><p id="listMsg" class="muted"></p></section>
-</div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
-const SUPABASE_URL="https://ulpckwlazrnhxvjthlgh.supabase.co", SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscGNrd2xhenJuaHh2anRobGdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4ODUyNzcsImV4cCI6MjEwNzQ2MTI3N30.IBEZUs2-n0drXoL7nlD4XbootmlVr7Ss_itYzuCsJSo";
-const CATEGORY_ORDER=["Paket Promo","Paket Catering","Paket Segar","Lainnya","Chicken Produk","Paket Bucket","Ayam Utuh","Paket Rocket","Paket Sehat","Paket Roma","Paket Geprek","Paket Hot Cheesy","Minuman"];
-const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const rupiah=n=>"Rp"+Number(n||0).toLocaleString("id-ID");
-const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-let menus=[];
-$("#category").innerHTML=CATEGORY_ORDER.map(c=>`<option>${esc(c)}</option>`).join("");
-function msg(id,text){$(id).textContent=text}
-function clearForm(){ $("#menuId").value="";$("#menuForm").reset();$("#active").checked=true;$("#formTitle").textContent="Tambah menu baru";msg("#formMsg","");}
-async function loadMenus(){
- if(!client){msg("#listMsg","Konfigurasi Supabase belum tersedia.");return}
- msg("#listMsg","Memuat data…");
- const {data,error}=await client.from("menus").select("*").order("sort_order",{ascending:true}).order("name");
- if(error){msg("#listMsg","Gagal memuat: "+error.message);return}
- menus=data||[];$("#totalCount").textContent=menus.length;$("#activeCount").textContent=menus.filter(m=>m.active).length;$("#catCount").textContent=new Set(menus.map(m=>m.display_category||m.category)).size;
- renderRows();
-}
-function renderRows(){
- const q=$("#filter").value.toLowerCase().trim();
- const found=menus.filter(m=>`${m.name} ${m.display_category||m.category}`.toLowerCase().includes(q));
- $("#tbody").innerHTML=found.map(m=>`<tr><td><strong>${esc(m.name)}</strong><br><span class="muted">${esc(m.description||"")}</span></td><td>${esc(m.display_category||m.category)}</td><td class="price">${rupiah(m.price)}</td><td><span class="badge ${m.active?"":"off"}">${m.active?"AKTIF":"NONAKTIF"}</span></td><td><div class="row"><button class="btn secondary" data-edit="${m.id}">Edit</button><button class="btn ${m.active?"danger":"secondary"}" data-toggle="${m.id}">${m.active?"Nonaktifkan":"Aktifkan"}</button></div></td></tr>`).join("")||'<tr><td colspan="5">Tidak ada menu yang cocok.</td></tr>';
- $("#tbody").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>editMenu(b.dataset.edit));
- $("#tbody").querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>toggleMenu(b.dataset.toggle));
-}
-function editMenu(id){const m=menus.find(x=>String(x.id)===String(id));if(!m)return;
- $("#menuId").value=m.id;$("#name").value=m.name||"";$("#price").value=m.price||0;$("#category").value=m.display_category||m.category;$("#sourceCategory").value=m.category||"";$("#description").value=m.description||"";$("#searchTerms").value=m.search_terms||"";$("#active").checked=!!m.active;$("#formTitle").textContent="Edit menu";window.scrollTo({top:0,behavior:"smooth"});
-}
-async function toggleMenu(id){const m=menus.find(x=>String(x.id)===String(id));if(!m)return;const {error}=await client.from("menus").update({active:!m.active,updated_at:new Date().toISOString()}).eq("id",id);if(error){msg("#listMsg","Gagal mengubah status: "+error.message);return}await loadMenus();}
-$("#menuForm").onsubmit=async e=>{e.preventDefault();if(!client)return;
- const id=$("#menuId").value;
- const payload={name:$("#name").value.trim(),price:Number($("#price").value),display_category:$("#category").value,category:$("#sourceCategory").value.trim()||$("#category").value,description:$("#description").value.trim(),search_terms:$("#searchTerms").value.trim(),active:$("#active").checked,updated_at:new Date().toISOString()};
- msg("#formMsg","Menyimpan…");
- const result=id?await client.from("menus").update(payload).eq("id",id):await client.from("menus").insert(payload);
- if(result.error){msg("#formMsg","Gagal: "+result.error.message);return}
- msg("#formMsg","Tersimpan ✓");clearForm();await loadMenus();
-};
-$("#resetForm").onclick=clearForm;$("#refresh").onclick=loadMenus;$("#filter").oninput=renderRows;
-$("#loginForm").onsubmit=async e=>{e.preventDefault();if(!client){msg("#loginMsg","Konfigurasi Supabase belum tersedia.");return}
- msg("#loginMsg","Memeriksa akun…");
- const {error}=await client.auth.signInWithPassword({email:$("#email").value.trim(),password:$("#password").value});
- if(error){msg("#loginMsg","Login gagal: "+error.message);return}
- await checkSession();
-};
-async function checkSession(){if(!client)return;const {data}=await client.auth.getSession();const session=data.session;
- $("#loginPanel").classList.toggle("hidden",!!session);$("#app").classList.toggle("hidden",!session);
- if(session) await loadMenus();
-}
-$("#logout").onclick=async()=>{await client.auth.signOut();await checkSession()};
-checkSession();
-</script></body></html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#c8102e">
+    <title>Admin Price List RC KS Tubun</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="js/zoom-lock.js" defer></script>
+    <script src="js/admin.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <h1>Admin Price List RC KS Tubun</h1>
+            <div>Panel khusus admin utama • Perubahan tersimpan di Supabase</div>
+        </div>
+    </header>
+    <main class="wrap">
+        <div id="authPanel" class="panel">
+            <strong>Login admin</strong>
+            <div class="row">
+                <div><label for="email">Email admin</label><input id="email" type="email" autocomplete="username"></div>
+                <div><label for="password">Password</label><input id="password" type="password"
+                        autocomplete="current-password"></div>
+            </div>
+            <div class="actions"><button id="loginBtn">Login</button><button id="logoutBtn"
+                    class="secondary hidden">Logout</button></div>
+            <div id="authStatus" class="status">Login menggunakan akun yang dibuat di Supabase Authentication.</div>
+        </div>
+        <div id="editorPanel" class="panel hidden">
+            <strong>Tambah / ubah menu</strong>
+            <p class="muted">Harga diisi angka saja, misalnya 13000. Perubahan tidak langsung tayang sebelum tombol
+                Simpan ditekan.</p>
+            <input id="itemId" type="hidden">
+            <div class="row">
+                <div><label for="name">Nama menu</label><input id="name" maxlength="120" required></div>
+                <div><label for="category">Kategori tampilan</label><select id="category">
+                        <option>Paket Promo</option>
+                        <option>Paket Catering</option>
+                        <option>Paket Segar</option>
+                        <option>Lainnya</option>
+                        <option>Chicken Produk</option>
+                        <option>Paket Bucket</option>
+                        <option>Ayam Utuh</option>
+                        <option>Paket Rocket</option>
+                        <option>Paket Sehat</option>
+                        <option>Paket Roma</option>
+                        <option>Paket Geprek</option>
+                        <option>Paket Geprek Kosek</option>
+                        <option>Paket Geprek Matah</option>
+                        <option>Paket Geprek Terasi</option>
+                        <option>Paket Hot Cheesy</option>
+                        <option>Minuman</option>
+                    </select></div>
+                <div><label for="sourceCategory">Kategori sumber (opsional)</label><input id="sourceCategory"
+                        maxlength="120"></div>
+            </div>
+            <label for="description">Deskripsi</label><input id="description" maxlength="300">
+            <label for="imageUrl">URL gambar (opsional)</label><input id="imageUrl" type="url" maxlength="2048"
+                placeholder="https://...">
+            <p class="muted">Gunakan URL gambar publik. Rasio yang disarankan 1,35:1, misalnya 1350 × 1000 piksel.
+                Gambar akan dipotong otomatis agar sesuai kartu menu.</p>
+            <div class="row">
+                <div><label for="price">Harga (Rp)</label><input id="price" type="number" min="0" step="500" required>
+                </div>
+                <div><label for="searchTerms">Kata pencarian tambahan</label><input id="searchTerms" maxlength="300">
+                </div>
+            </div>
+            <div class="actions"><button id="saveBtn">Simpan menu</button><button id="clearBtn"
+                    class="secondary">Kosongkan form</button></div>
+            <div id="saveStatus" class="status">Belum ada perubahan.</div>
+        </div>
+        <div id="listPanel" class="panel hidden">
+            <div class="row">
+                <div><strong>Daftar menu</strong>
+                    <p class="muted">Klik Edit untuk memuat data ke form.</p>
+                </div>
+                <div><label for="filter">Cari menu</label><input id="filter" placeholder="Ketik nama/kategori..."></div>
+            </div>
+            <div class="actions"><button id="refreshBtn" class="secondary">Muat ulang data</button><button
+                    id="exportBtn" class="secondary">Ekspor JSON cadangan</button></div>
+            <div id="listStatus" class="status">Belum dimuat.</div>
+            <div class="tablewrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Menu</th>
+                            <th>Kategori</th>
+                            <th>Harga</th>
+                            <th>Terakhir diubah</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </div>
+        <p class="muted">Keamanan: database RLS adalah penjaga utama. Menyembunyikan tombol saja bukan keamanan.
+            Pastikan UUID admin pada SQL cocok dengan UID akun admin kamu.</p>
+    </main>
+</body>
+
+</html>
