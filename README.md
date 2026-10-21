@@ -33,21 +33,21 @@ Website katalog menu dan harga Rocket Chicken outlet KS Tubun, Rejasari, Purwoke
 
 ```text
 .
-|-- index.html       # Katalog dan checkout
-|-- admin.html       # Panel pengelolaan menu
-|-- css/
-|   |-- style.css    # Gaya katalog
-|   `-- admin.css    # Gaya panel admin
-|-- js/
-|   |-- app.js       # Katalog, keranjang, dan checkout WhatsApp
-|   |-- admin.js     # Autentikasi dan pengelolaan data menu
-|   `-- zoom-lock.js # Mencegah pinch zoom pada perangkat sentuh
-`-- img/             # Aset gambar lokal
+|-- index.html
+|-- admin.html
+|-- package.json
+|-- vite.config.js
+|-- src/
+|   |-- main.jsx      # Katalog, kategori, keranjang, dan checkout
+|   |-- admin.jsx     # Panel autentikasi dan pengelolaan menu
+|   |-- supabase.js   # Klien Supabase dan kontak outlet
+|   `-- index.css     # Tailwind CSS dan gaya global
+`-- img/              # Dokumentasi dan aset gambar lokal
 ```
 
 ## Prasyarat Supabase
 
-Aplikasi menggunakan Supabase JavaScript v2 yang dimuat dari CDN. Siapkan proyek Supabase dengan tabel `public.menus` dan kolom yang digunakan oleh aplikasi:
+Aplikasi menggunakan Supabase JavaScript v2 melalui dependensi npm. Siapkan proyek Supabase dengan tabel `public.menus` dan kolom yang digunakan oleh aplikasi:
 
 | Kolom              | Kegunaan                                                       |
 | ------------------ | -------------------------------------------------------------- |
@@ -79,26 +79,31 @@ Frontend memakai Supabase publishable key; key tersebut memang terlihat oleh bro
 
 Pengaturan koneksi dan nomor WhatsApp outlet berada di kode frontend:
 
-- URL Supabase dan publishable key katalog serta nomor WhatsApp: `js/app.js`, pada objek `CONFIG`.
-- URL Supabase dan publishable key panel admin: `js/admin.js`, pada konstanta di awal file.
+- URL Supabase, publishable key, dan nomor WhatsApp outlet: `src/supabase.js`.
 
 Gunakan URL dan publishable key dari proyek Supabase yang sama pada kedua file. Nomor WhatsApp harus berupa nomor internasional tanpa tanda `+` atau pemisah, misalnya `62...`. Nomor yang saat ini tertanam adalah nomor outlet yang sudah dikonfigurasi di `app.js`.
 
-Kategori tampilan di panel admin merupakan daftar opsi tetap yang didefinisikan pada `admin.html`. Kategori lain yang dimasukkan langsung ke database masih dapat muncul di katalog, tetapi tidak tersedia sebagai pilihan admin sampai opsi ditambahkan ke HTML.
+Kategori tampilan di panel admin merupakan daftar opsi tetap yang didefinisikan pada `src/admin.jsx`. Kategori lain yang dimasukkan langsung ke database masih dapat muncul di katalog, tetapi tidak tersedia sebagai pilihan admin sampai opsi ditambahkan di sana.
 
 ## Menjalankan dan menerbitkan
 
-Tidak ada langkah build atau instalasi paket: ini adalah aplikasi HTML, CSS, dan JavaScript statis.
+Proyek menggunakan Vite, React, dan Tailwind CSS. Gunakan Node.js 20.19+ atau 22.12+.
 
-Untuk uji lokal, jalankan server statis dari folder proyek, misalnya:
+Pasang dependensi dan jalankan server pengembangan:
 
 ```powershell
-py -m http.server 8000
+npm install
+npm run dev
 ```
 
-Buka `http://localhost:8000/` untuk katalog dan `http://localhost:8000/admin.html` untuk panel admin. Koneksi internet dibutuhkan untuk Supabase, Google Fonts, Splide, serta gambar yang di-host secara eksternal.
+Vite menampilkan URL katalog lokal. Panel admin tersedia di `/admin.html`. Untuk memastikan hasil produksi, jalankan:
 
-Proyek dapat diterbitkan pada hosting statis seperti GitHub Pages. Atur URL Supabase, kebijakan RLS, dan nomor WhatsApp sebelum digunakan. Setelah perubahan data, muat ulang katalog untuk memastikan menu dan harga yang tampil sesuai dengan database.
+```powershell
+npm run build
+npm run preview
+```
+
+Hasil build berada di `dist/` dan dapat diterbitkan sebagai situs statis. Workflow GitHub Actions di `.github/workflows/deploy.yml` membangun dan menerbitkan folder ini ke GitHub Pages; atur Pages source ke **GitHub Actions**. Koneksi internet dibutuhkan untuk Supabase, Google Fonts, serta gambar yang di-host secara eksternal.
 
 ## Hasil audit dan batasan
 
@@ -108,12 +113,13 @@ Proyek dapat diterbitkan pada hosting statis seperti GitHub Pages. Atur URL Supa
 - Tidak ada ketersediaan stok per item. Katalog hanya menampilkan baris aktif dan memberi label “Tersedia”.
 - Menyimpan perubahan pada item yang sebelumnya nonaktif akan mengirim `active: true`, sehingga item tersebut aktif kembali.
 - Ekspor JSON mengunduh data menu yang sedang dimuat di panel admin, termasuk baris nonaktif bila RLS mengizinkannya. Simpan file ekspor dengan akses yang sesuai.
-- Halaman admin dan katalog memuat library dari CDN, sehingga fitur terkait memerlukan jaringan. Bila Supabase gagal diakses, katalog tidak dapat menampilkan data lokal sebagai fallback.
+- Halaman admin dan katalog membutuhkan koneksi jaringan untuk Supabase, Google Fonts, dan gambar eksternal. Bila Supabase gagal diakses, katalog tidak dapat menampilkan data lokal sebagai fallback.
 
 ## Dependensi eksternal
 
+- React dan React DOM untuk antarmuka.
+- Tailwind CSS v4 melalui plugin Vite.
 - Supabase JavaScript v2 untuk database dan autentikasi.
-- Splide 4.1.4 untuk carousel kategori.
 - Google Fonts (DM Sans dan Oswald).
 - Gambar menu dan gambar hero dari URL yang disimpan/didefinisikan di aplikasi.
 
